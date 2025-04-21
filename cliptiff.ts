@@ -179,14 +179,14 @@ for (const [index, GEOTIFF_FILENAME] of geotiffFiles.entries()) {
         const latDegree = latDegrees(BOUNDING_BOX[1], EXPAND_OFFSET);
         const lonDegree = lonDegrees(BOUNDING_BOX[1], EXPAND_OFFSET);
 
-        const minX = EXPAND_OFFSET > 0 ? BOUNDING_BOX[0] - lonDegree : BOUNDING_BOX[0];
-        const minY = EXPAND_OFFSET > 0 ? BOUNDING_BOX[1] - latDegree : BOUNDING_BOX[1];
-        const maxX = EXPAND_OFFSET > 0 ? BOUNDING_BOX[2] + lonDegree : BOUNDING_BOX[2];
-        const maxY = EXPAND_OFFSET > 0 ? BOUNDING_BOX[3] + latDegree : BOUNDING_BOX[3];
+        const minX = EXPAND_OFFSET !== 0 ? BOUNDING_BOX[0] - lonDegree : BOUNDING_BOX[0];
+        const minY = EXPAND_OFFSET !== 0 ? BOUNDING_BOX[1] - latDegree : BOUNDING_BOX[1];
+        const maxX = EXPAND_OFFSET !== 0 ? BOUNDING_BOX[2] + lonDegree : BOUNDING_BOX[2];
+        const maxY = EXPAND_OFFSET !== 0 ? BOUNDING_BOX[3] + latDegree : BOUNDING_BOX[3];
 
         LOG_LEVEL > 0 && console.log(`Creating temp mask with extents: ${minX}, ${minY}, ${maxX}, ${maxY}. Using EXPAND_OFFSET=${EXPAND_OFFSET}m`);
         let cmds = [o2o_path, "-nln", "layer", "-f", "GeoJSON", `${CWD}/${TEMP_MASK_DIR}/${GEOTIFF_FILENAME}.geojson`, `${CWD}/${MASK_DIR}/${maskFile}`, "-clipsrc", `${minX}`, `${minY}`, `${maxX}`, `${maxY}`];
-        if (EXPAND_OFFSET > 0) {
+        if (EXPAND_OFFSET !== 0) {
             cmds = cmds.concat(["-dialect", "sqlite", "-t_srs", "EPSG:4326", "-s_srs", "EPSG:4326", "-sql", `SELECT ST_Transform(ST_Buffer(ST_Transform(geometry, 3857), ${EXPAND_OFFSET}), 4326) AS geometry, * FROM ${MASK_LAYER_NAME}`]);
         }
         LOG_LEVEL > 1 && console.log(`Running command: ${cmds.join(" ")}`);
