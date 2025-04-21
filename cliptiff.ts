@@ -159,8 +159,8 @@ if (!MASK.features || MASK.features.length === 0) {
 const MASK_LAYER_NAME = MASK.name || path.basename(maskFile, path.extname(maskFile));
 console.log(`mask loaded: [${MASK_LAYER_NAME}] - ${MASK.features.length} features`);
 
-for (const GEOTIFF_FILENAME of geotiffFiles) {
-    LOG_LEVEL > 0 && console.log(`Processing ${GEOTIFF_FILENAME}...`);
+for (const [index, GEOTIFF_FILENAME] of geotiffFiles.entries()) {
+    LOG_LEVEL > 0 && console.log(`Processing "${GEOTIFF_FILENAME}"...`);
     const f = Bun.file(path.join(path.join(CWD, UNCLIPPED_DIR), GEOTIFF_FILENAME));
     const arrayBuffer = await f.arrayBuffer();
 
@@ -170,9 +170,12 @@ for (const GEOTIFF_FILENAME of geotiffFiles) {
     const BOUNDING_BOX = IMAGE.getBoundingBox();
 
     const bboxPoly = turf.bboxPolygon(BOUNDING_BOX as any);
-    const intersects = MASK.features.some((feature: any) => turf.booleanIntersects(bboxPoly, feature));
-
-    if (intersects) {
+    const intersectingFeature = MASK.features.find((feature: any) =>
+      turf.booleanIntersects(bboxPoly, feature)
+    );
+    
+    if (intersectingFeature) {
+        LOG_LEVEL > 0 && console.log(`Raster insects feature: ${intersectingFeature?.properties?.name ?? intersectingFeature?.properties?.Name ?? MASK_LAYER_NAME}`);
         const latDegree = latDegrees(BOUNDING_BOX[1], EXPAND_OFFSET);
         const lonDegree = lonDegrees(BOUNDING_BOX[1], EXPAND_OFFSET);
 
@@ -186,6 +189,7 @@ for (const GEOTIFF_FILENAME of geotiffFiles) {
         if (EXPAND_OFFSET > 0) {
             cmds = cmds.concat(["-dialect", "sqlite", "-t_srs", "EPSG:4326", "-s_srs", "EPSG:4326", "-sql", `SELECT ST_Transform(ST_Buffer(ST_Transform(geometry, 3857), ${EXPAND_OFFSET}), 4326) AS geometry, * FROM ${MASK_LAYER_NAME}`]);
         }
+        LOG_LEVEL > 1 && console.log(`Running command: ${cmds.join(" ")}`);
         const proc_tempmask = Bun.spawn(cmds, {
           cwd: CWD,
         });
@@ -195,11 +199,11 @@ for (const GEOTIFF_FILENAME of geotiffFiles) {
             console.error(`ogr2ogr failed with exit code ${proc_tempmask.exitCode}`);
             process.exit(1);
         }
-        LOG_LEVEL > 0 && console.log(`Temp mask created: ${GEOTIFF_FILENAME}.geojson`);
+        LOG_LEVEL > 0 && console.log(`Temp mask created: ${TEMP_MASK_DIR}/${GEOTIFF_FILENAME}.geojson`);
 
         LOG_LEVEL > 0 && console.log(`Clipping ${GEOTIFF_FILENAME} with mask...`);
         LOG_LEVEL > 0 && console.log(`Using BLEND_PX=${BLEND_PX}px`);
-        const proc_clip = Bun.spawn([
+        const clip_cmds = [
             gw_path,
             "-overwrite",
             "-of",
@@ -224,7 +228,9 @@ for (const GEOTIFF_FILENAME of geotiffFiles) {
             "PREDICTOR=2",
             `${CWD}/${UNCLIPPED_DIR}/${GEOTIFF_FILENAME}`,
             `${CWD}/${CLIPPED_DIR}/${GEOTIFF_FILENAME}`,
-        ], {
+        ];
+        LOG_LEVEL > 1 && console.log(`Running command: ${clip_cmds.join(" ")}`);
+        const proc_clip = Bun.spawn(clip_cmds, {
             cwd: CWD,
         });
         await proc_clip.exited;
@@ -260,5 +266,15 @@ for (const GEOTIFF_FILENAME of geotiffFiles) {
         }
         console.log(`Created clipped geotiff: ${CLIPPED_DIR}/${GEOTIFF_FILENAME} (blank)`);
     }
+    LOG_LEVEL > 0 && console.log(`Progress: ${index + 1}/${geotiffFiles.length}`);
+    if (LOG_LEVEL > 0) {
+      const progress = Math.round(((index + 1) / geotiffFiles.length) * 100);
+      const bar = (p => {
+        const len = 30;
+        const fill = Math.round((len * p) / 100);
+        return '█'.repeat(fill) + '-'.repeat(len - fill);
+      })(progress);
+      process.stdout.write(`\r${bar} ${progress}%\n\n`);
+    }
 }
-LOG_LEVEL > 0 && console.log("Bulk clip process completed.");
+LOG_LEVEL > 0 && console.log("\nBulk clip process completed.");
