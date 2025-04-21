@@ -121,7 +121,8 @@ if (gc_path.length < 1) {
   process.exit(1);
 }
 
-const geotiffFiles = fs.readdirSync(path.join(CWD, UNCLIPPED_DIR));
+const geotiffFiles = fs.readdirSync(path.join(CWD, UNCLIPPED_DIR))
+  .filter(f => f.toLowerCase().endsWith(".tif") || f.toLowerCase().endsWith(".tiff"));
 if (geotiffFiles.length === 0) {
   console.error("No geotiff files found in the directory.");
   process.exit(1);
@@ -134,7 +135,8 @@ for (const file of geotiffFiles) {
     }
 }
 
-const maskFiles = fs.readdirSync(path.join(CWD, MASK_DIR));
+const maskFiles = fs.readdirSync(path.join(CWD, MASK_DIR))
+  .filter(f => f.toLowerCase().endsWith(".geojson") || f.toLowerCase().endsWith(".json"));
 if (maskFiles.length === 0) {
   console.error("No mask files found in the directory.");
   process.exit(1);
