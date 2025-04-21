@@ -134,6 +134,7 @@ for (const file of geotiffFiles) {
         process.exit(1);
     }
 }
+console.log(`Found ${geotiffFiles.length} geotiff files`);
 
 const maskFiles = fs.readdirSync(path.join(CWD, MASK_DIR))
   .filter(f => f.toLowerCase().endsWith(".geojson") || f.toLowerCase().endsWith(".json"));
@@ -156,7 +157,7 @@ if (!MASK.features || MASK.features.length === 0) {
     process.exit(1);
 }
 const MASK_LAYER_NAME = MASK.name || path.basename(maskFile, path.extname(maskFile));
-console.log(`mask loaded: ${MASK_LAYER_NAME}, ${MASK.features.length} features`);
+console.log(`mask loaded: [${MASK_LAYER_NAME}] - ${MASK.features.length} features`);
 
 for (const GEOTIFF_FILENAME of geotiffFiles) {
     LOG_LEVEL > 0 && console.log(`Processing ${GEOTIFF_FILENAME}...`);
@@ -260,3 +261,4 @@ for (const GEOTIFF_FILENAME of geotiffFiles) {
         console.log(`Created clipped geotiff: ${CLIPPED_DIR}/${GEOTIFF_FILENAME} (blank)`);
     }
 }
+LOG_LEVEL > 0 && console.log("Bulk clip process completed.");
