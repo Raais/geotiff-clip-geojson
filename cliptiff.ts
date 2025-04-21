@@ -175,7 +175,7 @@ for (const [index, GEOTIFF_FILENAME] of geotiffFiles.entries()) {
     );
     
     if (intersectingFeature) {
-        LOG_LEVEL > 0 && console.log(`Raster insects feature: ${intersectingFeature?.properties?.name ?? intersectingFeature?.properties?.Name ?? MASK_LAYER_NAME}`);
+        LOG_LEVEL > 0 && console.log(`Raster intersects feature: ${intersectingFeature?.properties?.name ?? intersectingFeature?.properties?.Name ?? MASK_LAYER_NAME}`);
         const latDegree = latDegrees(BOUNDING_BOX[1], EXPAND_OFFSET);
         const lonDegree = lonDegrees(BOUNDING_BOX[1], EXPAND_OFFSET);
 

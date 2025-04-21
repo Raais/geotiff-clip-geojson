@@ -20,6 +20,7 @@ Options:
   -o, --offset <number>   Mask expand offset in meters (default: 0)
   -b, --blend <number>    Blend clipping pixels in px (default: 0)
   -s, --skip              Skip clipping if no intersection (default: false)
+  -p, --prefix <string>   Prefix to distinguish blank output files (default: none)
   -l, --loglevel <number> Set log verbosity level (default: 0)
   -h, --help              Show this help message
 ```
