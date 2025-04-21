@@ -40,6 +40,11 @@ const { values, positionals } = parseArgs({
         short: 's',
         default: false,
       },
+      prefix: {
+        type: 'string',
+        short: 'p',
+        default: "",
+      },
       loglevel: {
         type: 'string',
         short: 'l',
@@ -54,7 +59,7 @@ const { values, positionals } = parseArgs({
     strict: false,
     allowPositionals: true,
 });
-const { offset, blend, skip, loglevel, help } = values;
+const { offset, blend, skip, prefix, loglevel, help } = values;
 
 if (help) {
     console.log("Usage: cliptiff.ts [options]");
@@ -62,6 +67,7 @@ if (help) {
     console.log("  -o, --offset <number>   Mask expand offset in meters (default: 0)");
     console.log("  -b, --blend <number>    Blend clipping pixels in px (default: 0)");
     console.log("  -s, --skip              Skip clipping if no intersection (default: false)");
+    console.log("  -p, --prefix <string>   Prefix to distinguish blank output files (default: none)");
     console.log("  -l, --loglevel <number> Set log verbosity level (default: 0)");
     console.log("  -h, --help              Show this help message");
     process.exit(0);
@@ -80,6 +86,11 @@ if (isNaN(BLEND_PX)) {
 const SKIP_NO_INTERSECT = skip as boolean;
 if (typeof SKIP_NO_INTERSECT !== "boolean") {
     console.error("Invalid skip value. Must be a boolean.");
+    process.exit(1);
+}
+const PREFIX = prefix as string;
+if (typeof PREFIX !== "string") {
+    console.error("Invalid prefix value. Must be a string.");
     process.exit(1);
 }
 const LOG_LEVEL = parseInt(loglevel as string);
@@ -235,7 +246,7 @@ for (const GEOTIFF_FILENAME of geotiffFiles) {
             console.error(`gdal_create failed with exit code ${createEmpty.exitCode}`);
             process.exit(1);
         }
-        const setAlpha = Bun.spawn([gw_path, "-overwrite", "-dstalpha", `${CWD}/${EMPTY_DIR}/${GEOTIFF_FILENAME}`, `${CWD}/${CLIPPED_DIR}/${GEOTIFF_FILENAME}`], {
+        const setAlpha = Bun.spawn([gw_path, "-overwrite", "-dstalpha", `${CWD}/${EMPTY_DIR}/${GEOTIFF_FILENAME}`, `${CWD}/${CLIPPED_DIR}/${PREFIX}${GEOTIFF_FILENAME}`], {
             cwd: CWD,
         });
         await setAlpha.exited;
