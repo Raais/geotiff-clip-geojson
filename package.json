@@ -1,0 +1,15 @@
+{
+  "name": "geotiff-clip-geojson",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@turf/turf": "^7.2.0",
+    "geojson-clipping": "^0.3.0",
+    "geotiff": "^2.1.3"
+  }
+}

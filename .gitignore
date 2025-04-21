@@ -1,0 +1,10 @@
+MASK-GEOJSON/*
+UNCLIPPED-GEOTIFFS/*
+
+tempmasks/*
+empty/*
+OUTPUT/*
+
+node_modules
+
+.DS_Store
