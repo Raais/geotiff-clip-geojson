@@ -1,0 +1,1 @@
+# geotiff-clip-geojson
